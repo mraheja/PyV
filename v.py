@@ -6,6 +6,7 @@ IN_FILE = 'test_nn.py'
 
 OUT_FILE = 'out.py'
 TIME_FILE = 'time.json'
+MEM_FILE = 'mem.json'
 
 START_TIME_CMD = (
     'import time\n'
@@ -14,13 +15,28 @@ START_TIME_CMD = (
     f'f_time = open({TIME_FILE!r},\'w\')\n'
 )
 
+START_MEM_CMD = (
+    'import psutil\n'
+    'mem_dict, prev_mem = {}, psutil.cpu_percent()\n'
+    f'f_mem = open({MEM_FILE!r}, \'w\')\n'
+)
+
 READ_TIME_CMD = lambda line_n, prefix: (
     f'{prefix}time_dict[{line_n}] = time_dict.get({line_n},0) + time.time() - prev_time\n'
     f'{prefix}prev_time = time.time()\n'
 )
 
+READ_MEM_CMD = lambda line_n, prefix: (
+    f'{prefix}mem_dict[{line_n}] = mem_dict.get({line_n},0) + psutil.cpu_percent() - prev_mem\n'
+    f'{prefix}prev_time = psutil.cpu_percent()\n'
+)
+
 END_TIME_CMD = (
     '\njson.dump(time_dict, f_time)'
+)
+
+END_MEM_CMD = (
+    '\njson.dump(mem_dict, f_mem)'
 )
 
 def v(filename):
@@ -28,6 +44,7 @@ def v(filename):
         lines = f.readlines()
     out_lines = []
     out_lines.append(START_TIME_CMD)
+    #out_lines.append(START_MEM_CMD)
     for i,line in enumerate(lines):
         if not len(line):
             continue
@@ -55,8 +72,11 @@ def v(filename):
         if 'def' in line:
             out_lines.append(f'{prefix}global prev_time\n')
         out_lines.append(READ_TIME_CMD(i, prefix))
+        #out_lines.append(READ_MEM_CMD(i, prefix))
     out_lines.append(READ_TIME_CMD(len(lines),''))
+    #out_lines.append(READ_MEM_CMD(len(lines),''))
     out_lines.append(END_TIME_CMD)
+    #out_lines.append(END_MEM_CMD)
     with open(OUT_FILE, 'w') as f:
         for line in out_lines:
             f.write(line)
@@ -65,11 +85,16 @@ v(IN_FILE)
 
 os.system('python out.py')
 
-with open('time.json') as f:
+with open(TIME_FILE) as f:
     timings = json.load(f)
+
+with open(MEM_FILE) as f:
+    memories = json.load(f)
 
 m = max(timings.values())
 
+
+print("TIME PROFILE")
 
 with open(IN_FILE) as f:
     lines = f.readlines()
@@ -83,3 +108,19 @@ with open(IN_FILE) as f:
         print(f'{color}{line}{colorama.Style.RESET_ALL}',end='')
 
 print()
+# print()
+# print()
+# print('MEMORY PROFILE')
+
+# m = max(memories.values())
+
+# with open(IN_FILE) as f:
+#     lines = f.readlines()
+#     for i, line in enumerate(lines):
+#         t = memories.get(str(i),0)
+#         color = colorama.Fore.GREEN
+#         if t > m/4:
+#             color = colorama.Fore.YELLOW
+#         if t > m/2:
+#             color = colorama.Fore.RED
+#         print(f'{color}{line}{colorama.Style.RESET_ALL}',end='')

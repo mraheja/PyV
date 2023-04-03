@@ -34,7 +34,7 @@ params = list(net.parameters())
 
 saved = []
 
-for i in range(1000):
+for i in range(4000):
     input = torch.randn(1, 1, 32, 32)
     out = net(input)
     saved.append(out)

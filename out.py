@@ -83,7 +83,7 @@ prev_time = time.time()
 saved = []
 time_dict[34] = time_dict.get(34,0) + time.time() - prev_time
 prev_time = time.time()
-for i in range(1000):
+for i in range(4000):
     time_dict[36] = time_dict.get(36,0) + time.time() - prev_time
     prev_time = time.time()
     input = torch.randn(1, 1, 32, 32)
